@@ -13,10 +13,17 @@ set(PROJECT_NAME sqlite)
 # define project for C language
 project(${PROJECT_NAME} C)
 
+message("Building on: ${CMAKE_SYSTEM_NAME}")
+
 option(SQLITE_BUILD_STATIC "Build SQLite static library" ON)
 option(SQLITE_BUILD_SHARED "Build SQLite shared library" ON)
 
 set(SQLITE_STATIC_NAME "sqlite-static")
+set(SQLITE_WIN_BUILD OFF)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set(SQLITE_WIN_BUILD ON)
+endif()
 
 # add include path for project
 include_directories(${PROJECT_SOURCE_DIR}/src)
@@ -32,14 +39,17 @@ endif()
 if (SQLITE_BUILD_SHARED)
 	# build dynamic library
 	add_library(${PROJECT_NAME} SHARED ${SRC_LIB_FILE})
-	if (MSVC)
+	if (SQLITE_WIN_BUILD)
+		#then we do dll library, so need to export api
 		set_target_properties(${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL "SQLITE_API=__declspec(dllexport)")
 	endif()
 endif()
 
 # build shell executable
 add_executable(shell ${SRC_SHELL_FILE})
+
 if (SQLITE_BUILD_SHARED)
+	# preferred is shared library
 	target_link_libraries(shell ${PROJECT_NAME})
 elseif(SQLITE_BUILD_STATIC)
 	target_link_libraries(shell ${SQLITE_STATIC_NAME})
