@@ -16,4 +16,4 @@ TODO:
 - Add more platforms to generate (currently MSVC is tested)
 - Add NSIS/RPM(?)/DEB(?) CPack support
 - Add tests for basic functionality validation
-- Add options static/dynamic/shell
+
