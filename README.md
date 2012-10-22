@@ -8,12 +8,12 @@ The idea is simple:
 - extract amalgamation sources from http://www.sqlite.org/download.html to sqlite_bld/src
 - put this CMakeLists.txt to sqlite_bld
 - create sqlite_bld/build and cd to this folder
-- execute "cmake .." for default generator or add option "-G<generator you wish>"
+- execute "cmake .." for default generator or add option "-G[generator you wish]"
 
 
 TODO:
 ======
-- Add more platforms to generate (currently MSVC is tested)
+- Add more platforms to generate (currently MSVC (32/64) and partly MSYS is tested)
 - Add NSIS/RPM(?)/DEB(?) CPack support
-- Add tests for basic functionality validation
+- Add tests (gtest?) for basic functionality validation
 
