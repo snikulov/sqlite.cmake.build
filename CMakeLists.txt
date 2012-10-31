@@ -25,11 +25,29 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set(SQLITE_WIN_BUILD ON)
 endif()
 
+# ---------------------
+# Version detection
+# ---------------------
+file(STRINGS "${PROJECT_SOURCE_DIR}/src/sqlite3.h" _sqlite_api_h_VER_STRING REGEX ".*#define[ ]+SQLITE_VERSION[ ]+")
+
+string(REGEX MATCH "[0-9\\.]+" SQLITE_VER_STRING ${_sqlite_api_h_VER_STRING})
+string(REGEX MATCHALL "[0-9]+" _sqlite_ver_LIST "${SQLITE_VER_STRING}")
+list(LENGTH _sqlite_ver_LIST _sqlite_list_len)
+list(GET _sqlite_ver_LIST 0 SQLITE_VER_MAJOR)
+list(GET _sqlite_ver_LIST 1 SQLITE_VER_MINOR)
+list(GET _sqlite_ver_LIST 2 SQLITE_VER_PATCH)
+if(_sqlite_list_len EQUAL 4)
+	list(GET _sqlite_ver_LIST 3 SQLITE_VER_PATCHLEVEL)
+	message("Patch level: ${SQLITE_VER_PATCHLEVEL}")
+endif()
+
+message("FOUND: SQLite version = ${SQLITE_VER_STRING}")
+
 # add include path for project
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
-set(SRC_LIB_FILE src/sqlite3.c)
-set(SRC_SHELL_FILE src/shell.c)
+set(SRC_LIB_FILE ${PROJECT_SOURCE_DIR}/src/sqlite3.c)
+set(SRC_SHELL_FILE ${PROJECT_SOURCE_DIR}/src/shell.c)
 
 if (SQLITE_BUILD_STATIC)
 	# build static library
