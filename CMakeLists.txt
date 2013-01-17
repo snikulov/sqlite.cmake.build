@@ -18,7 +18,10 @@ message("Building on: ${CMAKE_SYSTEM_NAME}")
 option(SQLITE_BUILD_STATIC "Build SQLite static library" ON)
 option(SQLITE_BUILD_SHARED "Build SQLite shared library" ON)
 
-set(SQLITE_STATIC_NAME "sqlite-static")
+set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
+set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
+set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
+
 set(SQLITE_WIN_BUILD OFF)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -43,11 +46,15 @@ endif()
 
 message("FOUND: SQLite version = ${SQLITE_VER_STRING}")
 
+set(SQLITE_DYN_NAME "${PROJECT_NAME}${SQLITE_VER_MAJOR}")
+set(SQLITE_STATIC_NAME "${SQLITE_DYN_NAME}-static")
+
 # add include path for project
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
-set(SRC_LIB_FILE ${PROJECT_SOURCE_DIR}/src/sqlite3.c)
+set(SRC_LIB_FILE ${PROJECT_SOURCE_DIR}/src/sqlite${SQLITE_VER_MAJOR}.c)
 set(SRC_SHELL_FILE ${PROJECT_SOURCE_DIR}/src/shell.c)
+file(GLOB HDR_FILES ${PROJECT_SOURCE_DIR}/src/*.h)
 
 if (SQLITE_BUILD_STATIC)
 	# build static library
@@ -56,10 +63,10 @@ endif()
 
 if (SQLITE_BUILD_SHARED)
 	# build dynamic library
-	add_library(${PROJECT_NAME} SHARED ${SRC_LIB_FILE})
+	add_library(${SQLITE_DYN_NAME} SHARED ${SRC_LIB_FILE})
 	if (SQLITE_WIN_BUILD)
 		#then we do dll library, so need to export api
-		set_target_properties(${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL "SQLITE_API=__declspec(dllexport)")
+		set_target_properties(${SQLITE_DYN_NAME} PROPERTIES DEFINE_SYMBOL "SQLITE_API=__declspec(dllexport)")
 	endif()
 endif()
 
@@ -68,10 +75,27 @@ add_executable(shell ${SRC_SHELL_FILE})
 
 if (SQLITE_BUILD_SHARED)
 	# preferred is shared library
-	target_link_libraries(shell ${PROJECT_NAME})
+	target_link_libraries(shell ${SQLITE_DYN_NAME})
 elseif(SQLITE_BUILD_STATIC)
 	target_link_libraries(shell ${SQLITE_STATIC_NAME})
 else()
 	# no static or dynamic option selected
 	message(FATAL_ERROR "either static or dynamic option should be selected")
 endif()
+
+# installation
+list(APPEND TO_INSTALL shell)
+if(SQLITE_BUILD_SHARED)
+    list(APPEND TO_INSTALL ${SQLITE_DYN_NAME})
+endif()
+if(SQLITE_BUILD_STATIC)
+    list(APPEND TO_INSTALL ${SQLITE_STATIC_NAME})
+endif()
+
+install(TARGETS ${TO_INSTALL}
+        RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+        ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
+        LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
+install(FILES ${HDR_FILES} DESTINATION "${INSTALL_INC_DIR}")
+
+
