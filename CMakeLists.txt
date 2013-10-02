@@ -17,6 +17,8 @@ message("Building on: ${CMAKE_SYSTEM_NAME}")
 
 option(SQLITE_BUILD_STATIC "Build SQLite static library" ON)
 option(SQLITE_BUILD_SHARED "Build SQLite shared library" ON)
+option(WITH_SQLITE_DEBUG "Build SQLite debug features" OFF)
+option(WITH_SQLITE_MEMDEBUG "Build SQLite memory debug features" OFF)
 
 set(INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "Installation directory for executables")
 set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation directory for libraries")
@@ -25,7 +27,7 @@ set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation d
 set(SQLITE_WIN_BUILD OFF)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set(SQLITE_WIN_BUILD ON)
+    set(SQLITE_WIN_BUILD ON)
 endif()
 
 # ---------------------
@@ -40,8 +42,8 @@ list(GET _sqlite_ver_LIST 0 SQLITE_VER_MAJOR)
 list(GET _sqlite_ver_LIST 1 SQLITE_VER_MINOR)
 list(GET _sqlite_ver_LIST 2 SQLITE_VER_PATCH)
 if(_sqlite_list_len EQUAL 4)
-	list(GET _sqlite_ver_LIST 3 SQLITE_VER_PATCHLEVEL)
-	message("Patch level: ${SQLITE_VER_PATCHLEVEL}")
+    list(GET _sqlite_ver_LIST 3 SQLITE_VER_PATCHLEVEL)
+    message("Patch level: ${SQLITE_VER_PATCHLEVEL}")
 endif()
 
 message("FOUND: SQLite version = ${SQLITE_VER_STRING}")
@@ -56,31 +58,39 @@ set(SRC_LIB_FILE ${PROJECT_SOURCE_DIR}/src/sqlite${SQLITE_VER_MAJOR}.c)
 set(SRC_SHELL_FILE ${PROJECT_SOURCE_DIR}/src/shell.c)
 file(GLOB HDR_FILES ${PROJECT_SOURCE_DIR}/src/*.h)
 
+# adding compilation flags depending on options
+if(WITH_SQLITE_DEBUG)
+    add_definitions(-DSQLITE_DEBUG)
+endif()
+if(WITH_SQLITE_MEMDEBUG)
+    add_definitions(-DSQLITE_MEMDEBUG)
+endif()
+
 if (SQLITE_BUILD_STATIC)
-	# build static library
-	add_library(${SQLITE_STATIC_NAME} STATIC ${SRC_LIB_FILE})
+    # build static library
+    add_library(${SQLITE_STATIC_NAME} STATIC ${SRC_LIB_FILE})
 endif()
 
 if (SQLITE_BUILD_SHARED)
-	# build dynamic library
-	add_library(${SQLITE_DYN_NAME} SHARED ${SRC_LIB_FILE})
-	if (SQLITE_WIN_BUILD)
-		#then we do dll library, so need to export api
-		set_target_properties(${SQLITE_DYN_NAME} PROPERTIES DEFINE_SYMBOL "SQLITE_API=__declspec(dllexport)")
-	endif()
+    # build dynamic library
+    add_library(${SQLITE_DYN_NAME} SHARED ${SRC_LIB_FILE})
+    if (SQLITE_WIN_BUILD)
+        #then we do dll library, so need to export api
+        set_target_properties(${SQLITE_DYN_NAME} PROPERTIES DEFINE_SYMBOL "SQLITE_API=__declspec(dllexport)")
+    endif()
 endif()
 
 # build shell executable
 add_executable(shell ${SRC_SHELL_FILE})
 
 if (SQLITE_BUILD_SHARED)
-	# preferred is shared library
-	target_link_libraries(shell ${SQLITE_DYN_NAME})
+    # preferred is shared library
+    target_link_libraries(shell ${SQLITE_DYN_NAME})
 elseif(SQLITE_BUILD_STATIC)
-	target_link_libraries(shell ${SQLITE_STATIC_NAME})
+    target_link_libraries(shell ${SQLITE_STATIC_NAME})
 else()
-	# no static or dynamic option selected
-	message(FATAL_ERROR "either static or dynamic option should be selected")
+    # no static or dynamic option selected
+    message(FATAL_ERROR "either static or dynamic option should be selected")
 endif()
 
 # installation
