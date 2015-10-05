@@ -13,7 +13,6 @@ The idea is simple:
 
 TODO:
 ======
-- Add more platforms to generate (currently MSVC (32/64) and partly MSYS is tested)
 - Add NSIS/RPM(?)/DEB(?) CPack support
 - Add tests (gtest?) for basic functionality validation
 - Add control for more compilation options http://www.sqlite.org/compile.html
