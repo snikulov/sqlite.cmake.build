@@ -26,7 +26,6 @@ set(INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib" CACHE PATH "Installation direc
 set(INSTALL_INC_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "Installation directory for headers")
 
 set(SQLITE_WIN_BUILD OFF)
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(SQLITE_WIN_BUILD ON)
 endif()
@@ -51,6 +50,8 @@ message("FOUND: SQLite version = ${SQLITE_VER_STRING}")
 
 set(SQLITE_DYN_NAME "${PROJECT_NAME}${SQLITE_VER_MAJOR}")
 set(SQLITE_STATIC_NAME "${SQLITE_DYN_NAME}-static")
+
+find_package(Threads REQUIRED)
 
 # add include path for project
 include_directories(${PROJECT_SOURCE_DIR}/src)
@@ -89,9 +90,9 @@ add_executable(shell ${SRC_SHELL_FILE})
 
 if (SQLITE_BUILD_SHARED)
     # preferred is shared library
-    target_link_libraries(shell ${SQLITE_DYN_NAME})
+    target_link_libraries(shell ${SQLITE_DYN_NAME} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 elseif(SQLITE_BUILD_STATIC)
-    target_link_libraries(shell ${SQLITE_STATIC_NAME})
+    target_link_libraries(shell ${SQLITE_STATIC_NAME} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 else()
     # no static or dynamic option selected
     message(FATAL_ERROR "either static or dynamic option should be selected")
