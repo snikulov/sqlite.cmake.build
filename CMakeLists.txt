@@ -30,6 +30,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(SQLITE_WIN_BUILD ON)
 endif()
 
+set(SQLITE_WINRT_BUILD OFF)
+if(${CMAKE_SYSTEM_NAME} MATCHES "WindowsStore")
+    set(SQLITE_WINRT_BUILD ON)
+endif()
+
 # ---------------------
 # Version detection
 # ---------------------
@@ -69,6 +74,11 @@ if(WITH_SQLITE_MEMDEBUG)
 endif()
 if(WITH_SQLITE_RTREE)
     add_definitions(-DSQLITE_ENABLE_RTREE)
+endif()
+
+if(SQLITE_WINRT_BUILD)
+    # Don't use tools that are unavailable on RT platforms
+    add_definitions(-DSQLITE_OS_WINRT)
 endif()
 
 if (SQLITE_BUILD_STATIC)
